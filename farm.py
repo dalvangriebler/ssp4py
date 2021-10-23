@@ -1,5 +1,11 @@
-# make sure you have installed the following dependency
-# conda install -c conda-forge mpi4py
+"""This module provides a parallel programming abstraction for the Farm pattern.
+   Make sure you have installed the mpi4py dependency.
+    - For Anaconda users:
+        $ conda install -c conda-forge mpi4py
+    - For Pip users:
+        $ python -m pip install mpi4py
+   For any issue related to this module, contact-me: dalvangriebler@gmail.com
+"""
 
 from abc import ABCMeta, abstractclassmethod
 from mpi4py import MPI
@@ -7,6 +13,8 @@ from mpi4py import MPI
 # constants for defining message tags
 _EOS_TAG=10
 _DATA_TAG=11
+# enable or disable debug prints
+_DEBUG=True
 class ErrorInvalidNumProcFarm(Exception):
     """ We need at least 3 process in the Farm for Emitter, Worker and Collector """
     def __str__(self) -> str:
@@ -49,15 +57,14 @@ class SSP_Emitter(metaclass=ABCMeta):
     __num_proc=__comm.Get_size()-1
     @classmethod
     def emmit(self, task: SSP_task) -> None:
-        print("Emitter-Task: ", task)
+        if _DEBUG: print("Emitter-Task: ", task)
         if task.EOS:
             for id in range(2,self.__num_proc+1):
-                # print("-----------------")
                 self.__comm.send(task,dest=id, tag=_EOS_TAG)
             self.EOS=True  
         elif self.__id < self.__num_proc:
             self.__id=self.__id+1
-            # print("dest-ID:",self.__id)
+            if _DEBUG: print("Emitter destination:",self.__id)
             self.__comm.send(task,dest=self.__id, tag=_DATA_TAG)
         else:
             self.__id=1
@@ -79,7 +86,7 @@ class SSP_Worker(metaclass=ABCMeta):
     __comm=MPI.COMM_WORLD
     @classmethod
     def emmit(self, task: SSP_task) -> None:
-        print("Worker-Task: ", task)
+        if _DEBUG: print("Worker-Task: ", task)
         if task.EOS:
             self.__comm.send(task,dest=1, tag=_EOS_TAG)
         else:
@@ -98,6 +105,8 @@ class SSP_Collector(metaclass=ABCMeta):
 
 
 class Farm:
+    """This class represents the Farm pattern.
+    It creates the Farm topology and implements all communication."""
     __comm=MPI.COMM_WORLD
     __my_rank = __comm.Get_rank()
     __name_proc = MPI.Get_processor_name()
@@ -135,14 +144,14 @@ class Farm:
         # collector   
         elif self.__my_rank == 1:
             eos=self.__num_proc-2
-            print("eos:",eos)
+            if _DEBUG: print("Number of EOS expetected:", eos)
             while eos>0:
                 task=self.__comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=self.__status_mpi)
-                source = self.__status_mpi.Get_source()
-                tag = self.__status_mpi.Get_tag()
-                print("Collector-Task: ", task, " source=", source, " tag=", tag)
+                if _DEBUG:
+                    source = self.__status_mpi.Get_source()
+                    tag = self.__status_mpi.Get_tag()
+                    print("Collector-Task: ", task, " source=", source, " tag=", tag)
                 if task.EOS:
-                    # print("EOS-------")
                     eos=eos-1 
                 else:
                     self.__collector.code(task)
@@ -150,18 +159,19 @@ class Farm:
         else:
             while True:
                 task=self.__comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=self.__status_mpi)
-                source = self.__status_mpi.Get_source()
-                tag = self.__status_mpi.Get_tag()
-                print("Worker-Task: ", task, " source=", source, " tag=", tag)
+                if _DEBUG:
+                    source = self.__status_mpi.Get_source()
+                    tag = self.__status_mpi.Get_tag()
+                    print("Worker-Task: ", task, " source=", source, " tag=", tag)
                 self.__worker.code(task)
                 if task.EOS: break
   
     def __start_mpi(self):
-        print("Start MPI")
-        #MPI.Init()        
-        print("my_rank:", self.__my_rank)
-        print("name_proc:", self.__name_proc)
-        print("num_proc:", self.__num_proc)
+        if _DEBUG:
+            print("Start MPI")      
+            print("my_rank:", self.__my_rank)
+            print("name_proc:", self.__name_proc)
+            print("num_proc:", self.__num_proc)
         if self.__num_proc < 3:
             raise ErrorInvalidNumProcFarm()
         self.__run()
@@ -173,4 +183,5 @@ class Farm:
         self.__start_mpi()
         self.__end_mpi()
 
-    
+if __name__ == "__main__":
+    print("This is module and can not be executed as a script or program")
