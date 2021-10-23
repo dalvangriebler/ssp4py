@@ -26,7 +26,6 @@
 """
 #!/usr/bin/env python3
 
-
 import farm as ssp
 
 class Emitter(ssp.SSP_Emitter):
