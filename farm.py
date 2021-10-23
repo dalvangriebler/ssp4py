@@ -10,7 +10,7 @@ class ErrorInvalidNumProcFarm(Exception):
         return "Expected $ mpirun -np >= 3"
 
 class SSP_task:
-    """This classe is used to represent generic a task.
+    """This classe is used to represent a generic task.
     It is used to manage communication issues"""
     __EOS=False
     __task_id=0
@@ -96,28 +96,28 @@ class Farm:
     __my_rank = __comm.Get_rank()
     __name_proc = MPI.Get_processor_name()
     __num_proc = __comm.Get_size() 
-    # TODO: write the exception error classes for each type
+    
     def __init__(self,E,W,C,SCHE,ORD) -> None:
         if isinstance(E,SSP_Emitter):
             self.__emitter=E
         else:
-            raise Exception
+            raise TypeError ("Expected object SSP_Emitter")
         if isinstance(W,SSP_Worker):
             self.__worker=W
         else:
-            raise Exception
+            raise TypeError ("Expected object SSP_Worker")
         if isinstance(C,SSP_Collector):
             self.__collector=C
         else:
-            raise Exception
+            raise TTypeError ("Expected object SSP_Collector")
         if isinstance (SCHE,bool):
             self.__scheduler=SCHE
         else:
-            raise Exception
+            raise TypeError ("Expected boolean to enable/disable scheduling")
         if isinstance (ORD,bool):
             self.__ORD=ORD
         else:
-            raise Exception
+            raise TypeError ("Expected boolean to enable/disable ordering")
 
     def __run(self):
         # emitter

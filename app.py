@@ -35,7 +35,7 @@ class Collector(ssp.SSP_Collector):
         del task
 
 def main():
-    # creating the Farm topology
+    # creating the Farm topology.
     FARM=ssp.Farm(Emitter(),Worker(),Collector(),False,False)
     # executing the Farm topology
     FARM.run_and_wait()
