@@ -4,6 +4,9 @@
 from abc import ABCMeta, abstractclassmethod
 from mpi4py import MPI
 
+# constants for defining message tags
+_EOS_TAG=10
+_DATA_TAG=11
 class ErrorInvalidNumProcFarm(Exception):
     """ We need at least 3 process in the Farm for Emitter, Worker and Collector """
     def __str__(self) -> str:
@@ -49,13 +52,13 @@ class SSP_Emitter(metaclass=ABCMeta):
         print("Emitter-Task: ", task)
         if task.EOS:
             for id in range(2,self.__num_proc+1):
-                print("-----------------")
-                self.__comm.send(task,dest=id, tag=11)
+                # print("-----------------")
+                self.__comm.send(task,dest=id, tag=_EOS_TAG)
             self.EOS=True  
         elif self.__id < self.__num_proc:
             self.__id=self.__id+1
-            print("dest-ID:",self.__id)
-            self.__comm.send(task,dest=self.__id, tag=11)
+            # print("dest-ID:",self.__id)
+            self.__comm.send(task,dest=self.__id, tag=_DATA_TAG)
         else:
             self.__id=1
         del task
@@ -77,7 +80,10 @@ class SSP_Worker(metaclass=ABCMeta):
     @classmethod
     def emmit(self, task: SSP_task) -> None:
         print("Worker-Task: ", task)
-        self.__comm.send(task,dest=1, tag=11)
+        if task.EOS:
+            self.__comm.send(task,dest=1, tag=_EOS_TAG)
+        else:
+            self.__comm.send(task,dest=1, tag=_DATA_TAG)
         del task
 
     @abstractclassmethod
@@ -95,7 +101,8 @@ class Farm:
     __comm=MPI.COMM_WORLD
     __my_rank = __comm.Get_rank()
     __name_proc = MPI.Get_processor_name()
-    __num_proc = __comm.Get_size() 
+    __num_proc = __comm.Get_size()
+    __status_mpi = MPI.Status()
     
     def __init__(self,E,W,C,SCHE,ORD) -> None:
         if isinstance(E,SSP_Emitter):
@@ -130,17 +137,22 @@ class Farm:
             eos=self.__num_proc-2
             print("eos:",eos)
             while eos>0:
-                task=self.__comm.recv(source=MPI.ANY_SOURCE, tag=11)
-                print("Collector-Task: ", task)
+                task=self.__comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=self.__status_mpi)
+                source = self.__status_mpi.Get_source()
+                tag = self.__status_mpi.Get_tag()
+                print("Collector-Task: ", task, " source=", source, " tag=", tag)
                 if task.EOS:
-                    print("EOS-------")
+                    # print("EOS-------")
                     eos=eos-1 
                 else:
                     self.__collector.code(task)
         # worker
         else:
             while True:
-                task=self.__comm.recv(source=MPI.ANY_SOURCE, tag=11)
+                task=self.__comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=self.__status_mpi)
+                source = self.__status_mpi.Get_source()
+                tag = self.__status_mpi.Get_tag()
+                print("Worker-Task: ", task, " source=", source, " tag=", tag)
                 self.__worker.code(task)
                 if task.EOS: break
   

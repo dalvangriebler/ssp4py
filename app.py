@@ -7,8 +7,8 @@ import farm as ssp
 class Emitter(ssp.SSP_Emitter):
     def code(self) -> None:
         # sending how many task you need
-        for i in range (10):
-            print("Emitter:", i)
+        for i in range (1,10):
+            # print("Sending:", i)
             self.emmit(ssp.SSP_task(i))
         # advertise the computation has finished with EOS (end of stream)
         self.emmit(ssp.SSP_task(None,True))
@@ -16,7 +16,7 @@ class Emitter(ssp.SSP_Emitter):
 
 class Worker(ssp.SSP_Worker):
     def code(self, task: ssp.SSP_task) -> None:
-        print("Worker:", task)
+        # print("Computing:", task)
         # always test if it is EOS before performing computation 
         if not task.EOS:
             # you can call a pure/stateless function here
@@ -30,7 +30,7 @@ class Collector(ssp.SSP_Collector):
         # always test if it is EOS before performing computation 
         if not task.EOS:
             # you can call statefull function here
-            print("Collector:", task)
+            print("Result:", task)
         # cleaning data (good practice)
         del task
 
