@@ -10,7 +10,7 @@ It intends to provide parallel patterns suitable to structure and modeling strea
 `ssp4py` uses the [`mpi4py`](https://mpi4py.readthedocs.io/) as the backend. 
 
 
-**_Hopefully it can speed-up your machine-learning tasks of data pre-processing data and training models._**
+**_Hopefully you can speed-up your machine-learning tasks for pre-processing data, training algorithms and testing models in Python._**
 
 ## To-do List
 
