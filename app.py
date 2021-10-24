@@ -4,7 +4,7 @@
         - Implement the "code" method which is the computation that will be performed. Note that it is different depending on the abstract class (Farm entity).
         - Pay attention that Emitter emmits a task to Worker that emmits to Collector.
         - The tasks are consumed via "code" method parameter, which is always SSP_task type. 
-        - SP_task is a generic data type to be transfered data in the Farm topology. You can stored and access information via "data" attribute. Ex: task.data
+        - SP_task is a generic data type to be transfered in the Farm topology. You can store and access information via "data" attribute. Ex: task.data
         - Emitter has to advertise the end of the stream, which is done via "SSP_task(None,True)" message.
         - Inside the "code" of Worker and Collector classes, make sure to test if the message is an EOS to avoid errors since data is empty. Ex: if not task.EOS: computation()
         - Create the Farm topology with the "Farm" class, which receives as argument:
