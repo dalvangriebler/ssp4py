@@ -67,7 +67,8 @@ class SSP_Emitter(metaclass=ABCMeta):
             if _DEBUG: print("Emitter destination:",self.__id)
             self.__comm.send(task,dest=self.__id, tag=_DATA_TAG)
         else:
-            self.__id=1
+            self.__id=2
+            self.__comm.send(task,dest=self.__id, tag=_DATA_TAG)
         del task
         
     @property
@@ -125,7 +126,7 @@ class Farm:
         if isinstance(C,SSP_Collector):
             self.__collector=C
         else:
-            raise TTypeError ("Expected object SSP_Collector")
+            raise TypeError ("Expected object SSP_Collector")
         if isinstance (SCHE,bool):
             self.__scheduler=SCHE
         else:
