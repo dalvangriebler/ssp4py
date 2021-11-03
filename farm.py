@@ -67,7 +67,7 @@ class SSP_Emitter(metaclass=ABCMeta):
             if _DEBUG: print("Emitter destination:",self.__id)
             self.__comm.send(task,dest=self.__id, tag=_DATA_TAG)
         else:
-            self.__id=1
+            self.__id=2
         del task
         
     @property
